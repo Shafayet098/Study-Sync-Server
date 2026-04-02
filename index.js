@@ -18,7 +18,7 @@ app.use(cookieParser())
 //verify Token
 const verifyToken=(req,res,next)=>{
     const token = req?.cookies?.token;
-    console.log('cookie in the middleware ',token)
+    // console.log('cookie in the middleware ',token)
     if(!token){
         return res.status(401).send({message:'unauthorized Access'})
     }
@@ -93,6 +93,26 @@ async function run() {
             const result = await assignmentCollection.find(query, options).skip(page * size).limit(size).toArray()
             res.send(result)
         })
+        app.get('/mycards', async (req, res) => {
+            const email= req.query.email
+            // console.log(email)
+            const page = parseInt(req.query.page) - 1;
+            const size = parseInt(req.query.size);
+            const sort = req.query.sort;
+            const search = req.query.search
+            const filter = req.query.filter
+            let query = { title: { $regex: search, $options: 'i' } }
+            query = {userEmail: email}
+            let options = {};
+            if (filter) {
+                query.category = { category: filter }
+            }
+            if (sort) {
+                options = { sort: { deadline: sort === 'asc' ? '1' : '-1' } }
+            }
+            const result = await assignmentCollection.find(query,options).skip(page * size).limit(size).toArray()
+            res.send(result)
+        })
         app.get('/cards-count', async (req, res) => {
             const search = req.query.search;
             const filter = req.query.filter
@@ -111,13 +131,13 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await assignmentCollection.findOne(query);
-            console.log(result)
+            // console.log(result)
             res.send(result);
         })
 
         app.post('/assign', async (req, res) => {
             const newAssign = req.body;
-            console.log(newAssign)
+            // console.log(newAssign)
             const result = await assignmentCollection.insertOne(newAssign)
             res.send(result)
         })
